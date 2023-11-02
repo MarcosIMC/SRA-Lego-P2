@@ -29,25 +29,14 @@ btn = Button()
 # functions
 def move(distance, speed=30):
 
-    degrees_left= 360*distance/P_LEFT_WHEEL
-    degrees_right= 360*distance/P_RIGHT_WHEEL
-
     degrees= 360*distance/P_RIGHT_WHEEL
 
-
     steer.on_for_degrees(0, speed=speed, degrees=degrees, brake=True, block=True)
-
-    # left_motor.on_for_degrees(speed=speed, degrees=degrees_left, brake=True, block=False)
-    # right_motor.on_for_degrees(speed=speed, degrees=degrees_right, brake=True, block=True)
 
 def spin(degrees, spin=100, speed=15):
     
     degrees_left= P_WHEELS*360/(P_LEFT_WHEEL*4)
     degrees_right= P_WHEELS*360/(P_RIGHT_WHEEL*4)
-    
-
-    # left_motor.on_for_degrees(speed=speed, degrees=degrees_left, brake=True, block=False)
-    # right_motor.on_for_degrees(speed=speed, degrees=-degrees_right, brake=True, block=True)
     
     steer.on_for_degrees(spin, speed=speed, degrees=degrees_right, brake=True, block=True)
 
@@ -62,6 +51,7 @@ for i in range(0, 10):
         spin(90)
     while not btn.any():
         pass
+    sleep(1)
 
 for i in range(0, 10):
     for i in range(0, 4):
@@ -70,3 +60,4 @@ for i in range(0, 10):
         spin(90, spin=-100)
     while not btn.any():
         pass
+    sleep(1)
