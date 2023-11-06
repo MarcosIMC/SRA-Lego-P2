@@ -1,24 +1,3 @@
-#!/usr/bin/env python3
-
-# *=> imports
-from ev3dev2.motor import MoveSteering, OUTPUT_B, OUTPUT_C
-from ev3dev2.button import Button
-from time import sleep
-
-import math
-
-# *=> constants
-
-# diameters
-D_LEFT_WHEEL=55
-D_RIGHT_WHEEL=56
-D_WHEELS=125
-
-# perimeters
-P_LEFT_WHEEL=D_LEFT_WHEEL*math.pi
-P_RIGHT_WHEEL=D_RIGHT_WHEEL*math.pi
-P_WHEELS=D_WHEELS*math.pi
-
 # progressive movement
 PM_INCREMENT=5          # velocity increment every step
 PM_DISTANCE=5           # distance every step
@@ -27,27 +6,20 @@ PM_DISTANCE=5           # distance every step
 PS_INCREMENT=1          # velocity increment every step
 PS_DISTANCE=1           # distance every step
 
-# *=> Declarations
-btn = Button()
-steer = MoveSteering(OUTPUT_B, OUTPUT_C)
 
-# *=> functions
-def basic_move(distance, speed=30):
+total_distance=0
+total_degrees=0
 
-    degrees= 360*distance/P_RIGHT_WHEEL
-
-    steer.on_for_degrees(0, speed=speed, degrees=degrees, brake=True, block=True)
-
-def basic_spin(degrees, spin=100, speed=15):
-    
-    degrees_left= P_WHEELS*360/(P_LEFT_WHEEL*4)
-    degrees_right= P_WHEELS*360/(P_RIGHT_WHEEL*4)
-    
-    steer.on_for_degrees(spin, speed=speed, degrees=degrees_right, brake=True, block=True)
+def basic_move(distance, speed):
+    global total_distance
+    print(speed)
+    if speed <= 0:
+        print("TOTAL", total_distance)
+        raise Exception("AAAAAAAAA")
+    total_distance+=distance
 
 def move(distance, speed=50):
     # Para distancias variables necesitamos otro algoritmo que ajuste distancias menores a 2 veces PM_DISTANCE
-
     actual_speed=0
     steps = int(speed/PM_INCREMENT)
     distance -= 2*steps*PM_DISTANCE
@@ -59,7 +31,9 @@ def move(distance, speed=50):
 
         basic_move(PM_DISTANCE, speed=actual_speed)
     
+    print("distance:", total_distance)
     basic_move(distance, speed=speed)
+    print("distance:", total_distance)
 
     for i in range(0, steps):
         
@@ -67,6 +41,17 @@ def move(distance, speed=50):
 
         if(actual_speed > 0):
             actual_speed-= PM_INCREMENT
+
+    print("distance:", total_distance)
+
+
+def basic_spin(degrees, spin, speed):
+    global total_degrees
+    print(speed)
+    if speed <= 0:
+        print("TOTAL", total_distance)
+        raise Exception("AAAAAAAAA")
+    total_degrees+=degrees
 
 
 def spin(degrees, spin=100, speed=15):
@@ -82,7 +67,9 @@ def spin(degrees, spin=100, speed=15):
 
         basic_spin(PS_DISTANCE,spin=spin, speed=actual_speed)
     
+    print("degrees:", total_degrees)
     basic_spin(degrees, spin=spin, speed=speed)
+    print("degrees:", total_degrees)
 
     for i in range(0, steps):
         
@@ -90,25 +77,9 @@ def spin(degrees, spin=100, speed=15):
 
         if(actual_speed > 0):
             actual_speed-= PS_INCREMENT
+    
+    print("degrees:", total_degrees)
 
 
+spin(90, 30)
 
-# *=> Execution
-
-for i in range(0, 10):
-    for i in range(0, 4):
-        move(1000)
-        sleep(.9)
-        spin(90)
-    while not btn.any():
-        pass
-    sleep(1)
-
-for i in range(0, 10):
-    for i in range(0, 4):
-        move(1000)
-        sleep(.9)
-        spin(90, spin=-100)
-    while not btn.any():
-        pass
-    sleep(1)
