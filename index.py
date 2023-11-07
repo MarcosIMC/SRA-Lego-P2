@@ -27,7 +27,7 @@ P_WHEELS=D_WHEELS*math.pi
 btn = Button()
 
 # functions
-def move(distance, speed=30):
+def move(distance, speed=15):
 
     degrees= 360*distance/P_RIGHT_WHEEL
 
