@@ -10,9 +10,9 @@ PS_DISTANCE=1           # distance every step
 total_distance=0
 total_degrees=0
 
-def basic_move(distance, speed):
+def basic_move(distance, speed, stop=False):
     global total_distance
-    print(speed)
+    print(speed, stop)
     if speed <= 0:
         print("TOTAL", total_distance)
         raise Exception("AAAAAAAAA")
@@ -37,7 +37,7 @@ def move(distance, speed=50):
 
     for i in range(0, steps):
         
-        basic_move(PM_DISTANCE, speed=actual_speed)
+        basic_move(PM_DISTANCE, speed=actual_speed, stop=False if i < steps-1 else True)
 
         if(actual_speed > 0):
             actual_speed-= PM_INCREMENT
@@ -45,9 +45,9 @@ def move(distance, speed=50):
     print("distance:", total_distance)
 
 
-def basic_spin(degrees, spin, speed):
+def basic_spin(degrees, spin, speed, stop=False):
     global total_degrees
-    print(speed)
+    print(speed, stop)
     if speed <= 0:
         print("TOTAL", total_distance)
         raise Exception("AAAAAAAAA")
@@ -73,7 +73,7 @@ def spin(degrees, spin=100, speed=15):
 
     for i in range(0, steps):
         
-        basic_spin(PS_DISTANCE, spin=spin, speed=actual_speed)
+        basic_spin(PS_DISTANCE, spin=spin, speed=actual_speed, stop=False if i < steps-1 else True)
 
         if(actual_speed > 0):
             actual_speed-= PS_INCREMENT
@@ -82,4 +82,4 @@ def spin(degrees, spin=100, speed=15):
 
 
 spin(90, 30)
-
+move(1000, 50)

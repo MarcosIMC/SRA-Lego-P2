@@ -32,18 +32,19 @@ btn = Button()
 steer = MoveSteering(OUTPUT_B, OUTPUT_C)
 
 # *=> functions
-def basic_move(distance, speed=30):
+def basic_move(distance, speed=30, stop=False):
 
     degrees= 360*distance/P_RIGHT_WHEEL
 
-    steer.on_for_degrees(0, speed=speed, degrees=degrees, brake=True, block=True)
+    steer.on_for_degrees(0, speed=speed, degrees=degrees, brake=stop, block=not stop)
 
-def basic_spin(degrees, spin=100, speed=15):
+def basic_spin(degrees, spin=100, speed=15, stop=False):
     
     degrees_left= P_WHEELS*360/(P_LEFT_WHEEL*4)
     degrees_right= P_WHEELS*360/(P_RIGHT_WHEEL*4)
     
-    steer.on_for_degrees(spin, speed=speed, degrees=degrees_right, brake=True, block=True)
+    steer.on_for_degrees(spin, speed=speed, degrees=degrees_right, brake=stop, block=not stop)
+
 
 def move(distance, speed=50):
     # Para distancias variables necesitamos otro algoritmo que ajuste distancias menores a 2 veces PM_DISTANCE
@@ -63,7 +64,7 @@ def move(distance, speed=50):
 
     for i in range(0, steps):
         
-        basic_move(PM_DISTANCE, speed=actual_speed)
+        basic_move(PM_DISTANCE, speed=actual_speed, stop=False if i < steps-1 else True)
 
         if(actual_speed > 0):
             actual_speed-= PM_INCREMENT
@@ -86,7 +87,7 @@ def spin(degrees, spin=100, speed=15):
 
     for i in range(0, steps):
         
-        basic_spin(PS_DISTANCE, spin=spin, speed=actual_speed)
+        basic_spin(PS_DISTANCE, spin=spin, speed=actual_speed, stop=False if i < steps-1 else True)
 
         if(actual_speed > 0):
             actual_speed-= PS_INCREMENT
