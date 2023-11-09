@@ -9,8 +9,6 @@ import math
 # left_motor= LargeMotor(OUTPUT_B)
 # right_motor = LargeMotor(OUTPUT_C)
 
-steer = MoveSteering(OUTPUT_B, OUTPUT_C)
-btn = Button()
 
 D_LEFT_WHEEL=55
 D_RIGHT_WHEEL=56
@@ -24,6 +22,7 @@ P_RIGHT_WHEEL=D_RIGHT_WHEEL*math.pi
 P_WHEELS=D_WHEELS*math.pi
 
 # Declarations
+steer = MoveSteering(OUTPUT_B, OUTPUT_C)
 btn = Button()
 
 # functions
@@ -34,21 +33,17 @@ def move(distance, speed=15):
     steer.on_for_degrees(0, speed=speed, degrees=degrees, brake=True, block=True)
 
 def spin(degrees, spin=100, speed=15):
-    
-    degrees_left= P_WHEELS*360/(P_LEFT_WHEEL*4)
-    degrees_right= P_WHEELS*360/(P_RIGHT_WHEEL*4)
+    degrees_left= P_WHEELS*degrees/P_LEFT_WHEEL
+    degrees_right= P_WHEELS*degrees/P_RIGHT_WHEEL
     
     steer.on_for_degrees(spin, speed=speed, degrees=degrees_right, brake=True, block=True)
-
-
-
 
 # Execution
 for i in range(0, 10):
     for i in range(0, 4):
         move(1000)
         sleep(.9)
-        spin(90)
+        spin(92)
     while not btn.any():
         pass
     sleep(1)
@@ -57,7 +52,7 @@ for i in range(0, 10):
     for i in range(0, 4):
         move(1000)
         sleep(.9)
-        spin(90, spin=-100)
+        spin(92, spin=-100)
     while not btn.any():
         pass
     sleep(1)
