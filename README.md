@@ -15,5 +15,9 @@ En la cuarta iteración, decidimos cambiar el movimiento del robot a utilizando 
 
 ## Otros intentos
 
+### Velocidades progresivas
+Debido a que el arranque y el freno de los motores pueden provocar deslizamiento de las ruedas, y la baja velocidad, aunque precisa, no es lo ideal. Se intentó implementar un algoritmo que aumente y disminuya las velocidades (lineales y angulares) de forma progresiva. Y aunque los incrementos algorítmicamente eran correctos, la API del robot no permite dicho incremento progresivo ya que este se frena en cada iteración o obvia todos los comandos y se queda solo con el último.
+
+
 # Enlaces de referencia
 - https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/motors.html#move-steering
