@@ -13,5 +13,7 @@ Para la tercera iteración, probamos el método **LargeMotor(address=None, name_
 ## Iteración 4 
 En la cuarta iteración, decidimos cambiar el movimiento del robot a utilizando el objeto **MoveSteering**, con este objeto combinado con el método **on_for_degrees(steering, speed, degrees, brake=True, block=True)**, conseguimos hacer que ambos motores puedan arrancar al mismo tiempo, por lo que evitamos el problema de las iteraciones anteriores, donde se producía un pequeños movimiento de arrastre, producido por el arranque inicial de unos de los motores por tener sus llamadas independientes. Además, conseguimos que el giro sea de forma menos brusca en esta iteración.
 
+## Otros intentos
+
 # Enlaces de referencia
 - https://ev3dev-lang.readthedocs.io/projects/python-ev3dev/en/stable/motors.html#move-steering
