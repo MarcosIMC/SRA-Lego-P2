@@ -1,5 +1,5 @@
 # SRA-Lego-P2
-Práctica 2 - Lego
+Práctica 3 - Errores odométricos en robot diferencial
 
 ## Iteración 1
 Como primera aproximación, creamos el código utilizando el **MoveTank** pero teníamos el problema de que al tener dos llamadas seguidas al método **.on(ref_motor_izq, ref_motor_der)** el movimiento no era uniforme, lo cuál no tenía la sensación de fluidez que queríamos.
