@@ -1,22 +1,21 @@
 #!/usr/bin/env python3
 
 # *=> imports
+from enum import Enum
+import math
 
 from ev3dev2.button import Button
 
 # movement (left: A, right: D)
 from ev3dev2.motor import OUTPUT_A, OUTPUT_D
+from ev3dev2.motor import MoveSteering
 
 # arm movement (-degrees: front, degrees: back)
 from ev3dev2.motor import MediumMotor, OUTPUT_C
 
 # color sensor
 from ev3dev2.sensor.lego import ColorSensor
-from ev3dev2.sensor import INPUT_1
-class ColorSensor(Enum):
-    NO_COLOR = 0
-    BLACK = 1
-    WHITE = 6
+from ev3dev2.sensor import INPUT_4
 
 # touch sensor
 from ev3dev2.sensor.lego import TouchSensor
@@ -28,15 +27,6 @@ from ev3dev2.sensor import INPUT_2
 
 # leds
 from ev3dev2.led import Leds
-class Color(Enum):
-    L_RED="RED"
-    L_GREEN="GREEN"
-    L_YELLOW="YELLOW"
-
-
-# display
-from ev3dev2.console import Console
-import ev3dev2.fonts  as fonts
 
 # oth
 from time import sleep
@@ -44,35 +34,78 @@ from time import sleep
 
 # *=> conts
 
-ts = TouchSensor(INPUT_3)
+D_LEFT_WHEEL=55
+D_RIGHT_WHEEL=56
+
+D_WHEELS=125
+
+
+P_LEFT_WHEEL=D_LEFT_WHEEL*math.pi
+P_RIGHT_WHEEL=D_RIGHT_WHEEL*math.pi
+
+P_WHEELS=D_WHEELS*math.pi
+
+
 leds = Leds()
+ts = TouchSensor(INPUT_3)
 arm = MediumMotor(OUTPUT_C)
-console = Console()
+steer = MoveSteering( OUTPUT_A, OUTPUT_D)
+usSensor = UltrasonicSensor(INPUT_2)
+btn = Button()
+colorSensor = ColorSensor(INPUT_4)
 
 
 # *=> vars
+
+# defs
+
+# functions
+def move(distance, speed=15, brake=True, block=True):
+
+    distance*=10
+
+    degrees= 360*distance/P_RIGHT_WHEEL
+
+    steer.on_for_degrees(0, speed=speed, degrees=degrees, brake=brake, block=block)
+
+def spin(degrees, spin=100, speed=15, brake=True, block=True):
+
+    distance*=10
+
+    degrees_left= P_WHEELS*degrees/P_LEFT_WHEEL
+    degrees_right= P_WHEELS*degrees/P_RIGHT_WHEEL
+    
+    steer.on_for_degrees(spin, speed=speed, degrees=degrees_right, brake=brake, block=block)
 
 
 
 #*=> main
 
-console.set_font('Lat15-Terminus32x16.psf.gz', True)
-console.text_at("Holaasdfasdfadasdfsdafasdfasdfsaf", column=1, row=1, reset_console=True)
+logs = []    
+
+leds.all_off()
+leds.set_color( "LEFT","GREEN", pct=1)
+
+while not btn.any(): pass
+
+measure =  usSensor.distance_centimeters
+while colorSensor.reflected_light_intensity < 15:
+    logs.append(colorSensor.reflected_light_intensity)
+    leds.set_color( "LEFT","GREEN", pct=1)
+    move(10, 15, block=False)
+leds.set_color( "LEFT","RED", pct=1)
 
 
-while True:
-    if ts.is_pressed:
-#        display.draw.text((10, 10), "Touched" )
-        break
-    else:
-        pass
-        # display.draw.text((10, 10), "Not Touched" )
+    # while( measure > 10):
+        
+    #     if(measure > 100): continue
+    #     leds.set_color('RIGHT', "RED")
+    #     move(measure*.8-5, 15, False)
+    #     sleep(1)
+    #     measure = usSensor.distance_centimeters
+    #     logs.append(measure)
 
+    # leds.set_color("LEFT", 'AMBER')
+    # if btn.any(): break
 
-sleep(2)
-
-
-arm.on_for_degrees(5, 40, brake=True, block= True)
-sleep(1)
-arm.on_for_degrees(5, -35, brake=True, block= True)
-
+print(logs, file=open("colors.txt", "a"))
