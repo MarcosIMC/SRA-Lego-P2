@@ -43,7 +43,7 @@ for i in range(0, 10):
     for i in range(0, 4):
         move(1000)
         sleep(.9)
-        spin(92)
+        spin(90)
     while not btn.any():
         pass
     sleep(1)
@@ -52,7 +52,7 @@ for i in range(0, 10):
     for i in range(0, 4):
         move(1000)
         sleep(.9)
-        spin(92, spin=-100)
+        spin(90, spin=-100)
     while not btn.any():
         pass
     sleep(1)
