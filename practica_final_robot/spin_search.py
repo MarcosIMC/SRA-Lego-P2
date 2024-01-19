@@ -102,21 +102,21 @@ def search_spin(min_gap):
     init_angle = gyro.angle
     # print("initial angle: {}".format(gyro.angle))
     # sleep(2)
+    count=0
 
     spin(110, 100, 15, True, False)
     while motorL.is_running:
         sleep(.005)
         measure = usSensor.distance_centimeters_continuous
         # print("angle: {}".format(gyro.angle))
-        if( best_measure > measure):
+        count+=1
+        if( measure < best_measure ):
             best_measure = measure
             best_measure_angle = gyro.angle
-        if(best_measure < 85):
-            steer.stop()
-            sound.beep()
-            sound.beep()
-            sound.beep()
-            break
+            print("")
+            print("best angle: {}".format(best_measure_angle))
+            print("init angle: {}".format(init_angle))
+            print("distance: {}".format(best_measure))
         
     
 
@@ -129,9 +129,11 @@ def search_spin(min_gap):
         spin(55, -100, 15, True, False)
         return False
     
-    spin(abs(best_measure_angle-init_angle), -100, 15, True, True)
+    spin(abs(best_measure_angle-gyro.angle), -100, 15, True, True)
 
-    # print("final FINAL: {}".format(gyro.angle))
+    print("final FINAL: {}".format(gyro.angle))
+
+    print("count {}".format(count))
     
     return best_measure
 
