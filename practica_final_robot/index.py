@@ -37,7 +37,7 @@ from ev3dev2.sensor import INPUT_1
 
 # oth
 from time import sleep
-
+import time
 
 # *=> conts
 
@@ -92,6 +92,25 @@ def spin(degrees, spin=100, speed=15, brake=True, block=False):
 
     steer.on_for_degrees(spin, speed=speed, degrees=degrees_right, brake=brake, block=block)
 
+
+def turn_degrees(target_angle, speed, brake=True, error_margin=2, sleep_time=0.01):
+    while True:
+        current_angle = steer.gyro.angle
+        delta = abs(target_angle - current_angle)
+
+        if delta <= error_margin:
+            steer.stop(brake=brake)
+            break
+
+        # we are left of our target, rotate clockwise
+        if current_angle < target_angle:
+            steer.on(100, speed)
+
+        else:
+            steer.on(-100, speed)
+
+        if sleep_time:
+            time.sleep(sleep_time)
 
 
 
