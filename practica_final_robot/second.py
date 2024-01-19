@@ -80,6 +80,7 @@ def spin(degrees, spin=100, speed=15, brake=True, block=False):
 def search_spin(min_gap):
     spin(90,100,15,True,False)
     val = check(min_gap)
+    
     if val > 0: return val
     spin(180,-100,15,True,False)
     return check()
@@ -93,6 +94,7 @@ def check(min_gap):
         if measure < min_gap:
             steer.stop()
             return measure
+    steer.stop()
     return 0
 
 def move_in(dist):

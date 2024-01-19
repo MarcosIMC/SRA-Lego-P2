@@ -28,6 +28,10 @@ from ev3dev2.sensor import INPUT_3
 from ev3dev2.sensor.lego import UltrasonicSensor
 from ev3dev2.sensor import INPUT_2
 
+# gyroscope
+from ev3dev2.sensor.lego import GyroSensor
+from evdev3dev2.sensor import INPUT_1
+
 # leds
 from ev3dev2.led import Leds
 
@@ -62,6 +66,7 @@ steer = MoveSteering( OUTPUT_A, OUTPUT_D)
 usSensor = UltrasonicSensor(INPUT_2)
 btn = Button()
 colorSensor = ColorSensor(INPUT_4)
+gyro = GyroSensor(INPUT_1)
 
 
 # *=> vars
