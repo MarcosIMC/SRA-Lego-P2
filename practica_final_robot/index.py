@@ -253,15 +253,16 @@ sound.beep()
 if ( not search_spin(80)):
     move(-5, 20, True, False)
     exit()
-
 sound.beep()
 move_to_goal()
+
+"""
 move(-15, 30, True, True)
 search_spin(30)
 measure = usSensor.distance_centimeters_continuous
 move(measure, 10, True, True)
 spin(5, -100, 5, True, True)
-
+ """
 while(not hit_goal()):
     lift_arm()
     sleep(1)
