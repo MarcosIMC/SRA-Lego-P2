@@ -31,6 +31,10 @@ from ev3dev2.sensor import INPUT_2
 # leds
 from ev3dev2.led import Leds
 
+# Gyro
+from ev3dev2.sensor.lego import GyroSensor
+from ev3dev2.sensor import INPUT_1
+
 # oth
 from time import sleep
 
@@ -62,6 +66,9 @@ steer = MoveSteering( OUTPUT_A, OUTPUT_D)
 usSensor = UltrasonicSensor(INPUT_2)
 btn = Button()
 colorSensor = ColorSensor(INPUT_4)
+steer.gyro = GyroSensor()
+
+# steer.gyro.calibrate()
 
 
 # *=> vars
@@ -77,11 +84,12 @@ def move(distance, speed=15, brake=True, block=False):
 
     steer.on_for_degrees(0, speed=speed, degrees=degrees, brake=brake, block=block)
 
+
 def spin(degrees, spin=100, speed=15, brake=True, block=False):
 
-    degrees_left= P_WHEELS*degrees/P_LEFT_WHEEL
-    degrees_right= P_WHEELS*degrees/P_RIGHT_WHEEL
-    
+    degrees_left = P_WHEELS*degrees/P_LEFT_WHEEL
+    degrees_right = P_WHEELS*degrees/P_RIGHT_WHEEL
+
     steer.on_for_degrees(spin, speed=speed, degrees=degrees_right, brake=brake, block=block)
 
 
@@ -102,6 +110,7 @@ def search_spin(min_gap):
     motor = Motor(OUTPUT_A)
 
     distances.append("FIRST")
+    search_distance = []
 
     # Girar primero hacia un lado
     spin(45, -100, 10, True, True)
@@ -112,10 +121,12 @@ def search_spin(min_gap):
     # Si resulta que el objeto se encuentra justo en el borde
     measure = usSensor.distance_centimeters_continuous
     distances.append(measure)
+    search_distance.append((steer.gyro.angle, measure))
     while(measure <= min_gap):
         spin(5, -100, 10, True, True)
         measure = usSensor.distance_centimeters_continuous
         distances.append(measure)
+        search_distance.append((steer.gyro.angle, measure))
 
     sound.beep()
     sleep(1)
@@ -125,9 +136,11 @@ def search_spin(min_gap):
     spin(5, 100, 15, True, True)
     measure = usSensor.distance_centimeters_continuous
     distances.append(measure)
+    search_distance.append((steer.gyro.angle, measure))
     while(measure >= min_gap):
         measure = usSensor.distance_centimeters_continuous
         distances.append(measure)
+        search_distance.append((steer.gyro.angle, measure))
         spin(5, 100, 15, True, True)
 
     sound.beep()
@@ -136,11 +149,13 @@ def search_spin(min_gap):
     spin(8, 100, 10, True, True)
     measure = usSensor.distance_centimeters_continuous
     distances.append(measure)
+    search_distance.append((steer.gyro.angle, measure))
 
     while(measure <= min_gap):
         spin(5, 100, 10, True, True)
         measure = usSensor.distance_centimeters_continuous
         distances.append(measure)
+        search_distance.append((steer.gyro.angle, measure))
         idx+=1
     # Encontramos el otro borde del objeto
     sound.beep()
@@ -239,6 +254,7 @@ def move_out():
 leds.all_off()
 leds.set_color( "LEFT","GREEN", pct=1)
 sound.beep()
+print("START")
 
 while not btn.any(): pass
 
