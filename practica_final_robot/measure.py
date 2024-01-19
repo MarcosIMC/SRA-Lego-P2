@@ -32,9 +32,13 @@ from ev3dev2.sensor import INPUT_2
 # leds
 from ev3dev2.led import Leds
 
+from ev3dev2.sensor.lego import GyroSensor
+from ev3dev2.sensor import INPUT_1
+
+
 # oth
 from time import sleep
-
+import time
 
 # *=> conts
 
@@ -63,7 +67,9 @@ steer = MoveSteering( OUTPUT_A, OUTPUT_D)
 usSensor = UltrasonicSensor(INPUT_2)
 btn = Button()
 colorSensor = ColorSensor(INPUT_4)
+steer.gyro = GyroSensor(INPUT_1)
 
+# steer.gyro.calibrate()
 
 distances = []
 sound.beep()
@@ -71,8 +77,16 @@ while not btn.any(): pass
 
 sleep(1)
 
+position_history = []
+start_time = time.time()
+
 while not btn.any():
-    print("{:.2f}".format(usSensor.distance_centimeters_continuous))
+    distance = usSensor.distance_centimeters_continuous
+    angle = steer.gyro.angle
+    print("{:.2f} ; {:.2f} ;".format(distance, angle))
+    position_history.append(
+        (time.time() - start_time, distance, angle))
     #distances.append(usSensor.distance_centimeters_continuous)
 
-print(distances, file=open("distances.txt", "w"))
+with open('position_history.csv', 'w') as fp:
+    fp.write('\n'.join('{},{}'.format(x[0], x[1]) for x in position_history))
