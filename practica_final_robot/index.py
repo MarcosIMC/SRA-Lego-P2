@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
 # *=> imports
-from enum import Enum
 import math
-
-import datetime
 
 from ev3dev2.button import Button
 from ev3dev2.sound import Sound
@@ -30,7 +27,7 @@ from ev3dev2.sensor import INPUT_2
 
 # gyroscope
 from ev3dev2.sensor.lego import GyroSensor
-from evdev3dev2.sensor import INPUT_1
+from ev3dev2.sensor import INPUT_1
 
 # leds
 from ev3dev2.led import Leds
@@ -67,6 +64,19 @@ usSensor = UltrasonicSensor(INPUT_2)
 btn = Button()
 colorSensor = ColorSensor(INPUT_4)
 gyro = GyroSensor(INPUT_1)
+motorL, motorR = Motor(OUTPUT_A), Motor(OUTPUT_D)
+
+def reset_motor():
+    motorL.reset()
+    motorR.reset()
+
+    motorL.ramp_up_sp =     1000
+    motorL.ramp_down_sp =   1000
+    motorR.ramp_up_sp =     1000
+    motorR.ramp_down_sp =   1000
+
+reset_motor()
+
 
 
 # *=> vars
@@ -75,6 +85,10 @@ gyro = GyroSensor(INPUT_1)
 
 # functions
 def move(distance, speed=15, brake=True, block=False):
+
+    if(distance < 0 or speed < 0):
+        motorL.speed_sp = -motorL.max_speed
+        motorR.speed_sp = motorR.max_speed
 
     distance*=10
 
@@ -99,63 +113,75 @@ def spin(degrees, spin=100, speed=15, brake=True, block=False):
 # 5. Salir del circulo
     
 distances = []
+
     
-def search_spin(min_gap):
+def search_spin(min_gap, *, offset1=55, speed1=13, speed2=10, offset2= 10, second_lap=False, fast_exit = False):
 
-    distances.append("SEARCH_SPIN")
+    SLEEP_PERIOD = .002
+    ANGLE_OFFSET = 2
 
-    motor = Motor(OUTPUT_A)
+    best_measure = float("inf")
+    best_measure_angle = 0
 
-    distances.append("FIRST")
+    spin(offset1, -100, 80, True, False)
+    while motorL.is_running: pass
 
-    # Girar primero hacia un lado
-    spin(45, -100, 10, True, True)
-
-    sound.beep()
-    sleep(1)
-
-    # Si resulta que el objeto se encuentra justo en el borde
-    measure = usSensor.distance_centimeters_continuous
-    distances.append(measure)
-    while(measure <= min_gap):
-        spin(5, -100, 10, True, True)
+    leds.set_color("LEFT", "GREEN", pct=1)
+    spin(offset1*2, 100, speed1, True, False)
+    while motorL.is_running:
+        sleep(SLEEP_PERIOD)
         measure = usSensor.distance_centimeters_continuous
-        distances.append(measure)
+ 
+        if( measure < best_measure and measure < min_gap ):
+            best_measure = measure
+            best_measure_angle = gyro.angle
+            leds.set_color("LEFT", "RED", pct=1)
+            if (fast_exit ): break
+           
 
-    sound.beep()
-    sleep(1)
-    # Encontramos el borde izquierdo del objeto
+    if(best_measure > min_gap):
+        spin(offset1, -100, 80, True, False)
+        return False
+    
+    dO = abs(best_measure_angle-gyro.angle)
+    Oo = offset2 if second_lap else 0
+    turning_sense = -100 if (dO + Oo) <= 180 else 100
+    O = (dO + Oo) if turning_sense == -100 else (dO - Oo)
+  
+    spin( O, turning_sense, 80, True, True)
 
-    # Buscamos hacia la derecha algo
-    spin(5, 100, 15, True, True)
-    measure = usSensor.distance_centimeters_continuous
-    distances.append(measure)
-    while(measure >= min_gap):
+    if not second_lap:
+        dist = usSensor.distance_centimeters_continuous
+        return dist if dist <= min_gap else None
+
+    # segunda vuelta
+
+    best_measure = float("inf")
+    best_measure_angle = 0
+
+    while motorL.is_running: pass
+
+    leds.set_color("LEFT", "GREEN")
+    spin(offset2*2, 100, speed2, True, False)
+    while motorL.is_running:
+        sleep(SLEEP_PERIOD)
         measure = usSensor.distance_centimeters_continuous
-        distances.append(measure)
-        spin(5, 100, 15, True, True)
 
-    sound.beep()
-    sleep(1)
-    idx = 0
-    spin(8, 100, 10, True, True)
-    measure = usSensor.distance_centimeters_continuous
-    distances.append(measure)
+        if( measure < best_measure and measure < min_gap ):
+            best_measure = measure
+            best_measure_angle = gyro.angle
+            leds.set_color("LEFT", "RED", pct=1)
 
-    while(measure <= min_gap):
-        spin(5, 100, 10, True, True)
-        measure = usSensor.distance_centimeters_continuous
-        distances.append(measure)
-        idx+=1
-    # Encontramos el otro borde del objeto
-    sound.beep()
-    sleep(1)
-        
-    spin(idx*2.5, -100, 15, True, True)
-    sound.beep()
-    sleep(1)
 
-    return True
+    dO = abs(best_measure_angle-gyro.angle)
+    turning_sense = -100 if dO <= 180 else 100
+    O = dO  if turning_sense == -100 else (360 - dO)
+
+    spin( O ,turning_sense, 60, True, True)
+
+    dist = usSensor.distance_centimeters_continuous
+    
+    return dist if dist <= min_gap else None
 
 
 def lift_arm():
@@ -164,8 +190,8 @@ def lift_arm():
 intensities = []
 def move_to_goal():
     intensities.append("MOVE_TO_GOAL")
-    motor = Motor(OUTPUT_A)
-    speed = 50
+    speed = 70
+    TIMEOUT=2500
     leds.set_color( "LEFT", "YELLOW", pct=1)
 
     intensities.append("FIRST")
@@ -174,7 +200,7 @@ def move_to_goal():
     
     intens = colorSensor.reflected_light_intensity
     intensities.append(intens)
-    while intens  < COLOR_GAP:
+    while intens < COLOR_GAP:
         intens = colorSensor.reflected_light_intensity
         intensities.append(intens)
 
@@ -199,21 +225,32 @@ def move_to_goal():
         if intens > COLOR_GAP: break
 
         move(10, speed, block=False)
-        steer.run_timed(time_sp=3000)
+        steer.run_timed(time_sp=TIMEOUT)
 
         while(intens < COLOR_GAP):
-            if(not motor.is_running):
-                search_spin(30)
-                break
+            if(not motorL.is_running):
+                return False
             intens = colorSensor.reflected_light_intensity
             intensities.append(intens)
 
         steer.stop()
 
     steer.stop()
+    return True
 
 
 def hit_goal():
+
+    MOVE_OFFSET = 3
+
+    # if(usSensor.distance_centimeters_continuous > 5):
+    #     move(5, -15, True, True)
+    #     dist = search_spin(30, offset1=45, speed1=10, fast_exit=True)
+    #     while(not search_spin(30, offset1=45, speed1=10, fast_exit=True)):
+    #          move(5, -15, True, True)
+    #          dist = search_spin(30, offset1=45, speed1=10, fast_exit=True)
+    #     move( dist - MOVE_OFFSET, 10, brake=True, block=True)
+   
     arm.on_for_degrees(speed=35, degrees=-97*Z_REL, brake=True, block=False)
     while(arm.is_running):
         if( ts.is_pressed ): return True
@@ -223,8 +260,8 @@ def hit_goal():
 def move_out():
 
     motorL, motorR = Motor( OUTPUT_A), Motor(OUTPUT_D)
-    motorL.speed_sp = -motorL.max_speed*.8
-    motorR.speed_sp = -motorR.max_speed*.8
+    motorL.speed_sp = -motorL.max_speed
+    motorR.speed_sp = -motorR.max_speed
 
     leds.set_color("RIGHT", "RED")
     # detecta la entrada a la linea interior
@@ -240,52 +277,63 @@ def move_out():
     steer.stop()
 
 #*=> main
+    
+MOVE_OFFSET = 3
 
-leds.all_off()
-leds.set_color( "LEFT","GREEN", pct=1)
-sound.beep()
+while True:
 
-while not btn.any(): pass
+    leds.all_off()
+    while not btn.any(): pass
+    sleep(2)
 
-lift_arm()
-
-while not btn.any(): pass
-
-sound.beep()
-
-
-
-if ( not search_spin(80)):
-    move(-5, 20, True, False)
-    exit()
-sound.beep()
-move_to_goal()
-
-"""
-move(-15, 30, True, True)
-search_spin(30)
-measure = usSensor.distance_centimeters_continuous
-move(measure, 10, True, True)
-spin(5, -100, 5, True, True)
- """
-while(not hit_goal()):
+    leds.set_color( "LEFT","GREEN", pct=1)
     lift_arm()
-    sleep(1)
-    move(-15, 30, True, True)
-    search_spin(30)
-    measure = usSensor.distance_centimeters_continuous
-    move(measure, 10, True, True)
+    sound.beep()
 
-leds.set_color( "RIGHT", "YELLOW", pct=1)
-sound.beep()
-if(move_out()): leds.set_color( "LEFT", "GREEN", pct=1)
+    while ( not search_spin(100, second_lap=True)): pass
 
-sound.beep()
-# encendemos el led cuando esté fuera del círculo exterior 
+    sound.beep()
+    if(not move_to_goal()):
+        dist = search_spin(30, offset1=180, speed1=10, second_lap=True, fast_exit=True)
+        # FIXME Quitar esto cuando
+        if(not dist): leds.set_color( "LEFT" ,"YELLOW")
+        sleep(1)
+        #====== 
+        while(not dist): dist = search_spin(30, offset1=180, speed1=10, second_lap=True)
+        move(dist-MOVE_OFFSET, 10, True, True) 
+    else:
+        dist = search_spin(30, offset1=40, speed1=10, second_lap=True)
+        while(not dist):
+            move(5, -30, True, True)
+            dist = search_spin(30, offset1=40, speed1=10, second_lap=True)
 
-while not btn.any(): pass
+    move(dist-MOVE_OFFSET, 10, True, True)   
+
+    times = 0
+    while(not hit_goal()):
+        lift_arm()
+        sleep(10)
+        reset_motor()
+        move(-10, 30, True, True)
+
+        if(times > 5):
+            dist = search_spin(15, offset1=180, speed1=15, second_lap=True, fast_exit=True)
+            times = 0
+        else:
+            dist = search_spin(30, offset1=45, speed1=10, second_lap=True)
+
+            while(not dist and times < 5):
+                dist = search_spin(30, offset1=45, speed1=10, second_lap=True, fast_exit=True)
+                times += 1
+
+        move(dist-MOVE_OFFSET, 15, True, True)
+        times+=1
 
 
+    leds.set_color( "RIGHT", "YELLOW", pct=1)
+    sound.beep()
 
-print(distances, file=open("distances.txt", "a"))
-print(intensities, file=open("intensity.txt", "a"))
+    if(move_out()): leds.set_color( "LEFT", "GREEN", pct=1)
+
+    leds.set_color( "RIGHT", "GREEN", pct=1)
+    sound.beep()
