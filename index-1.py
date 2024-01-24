@@ -307,7 +307,7 @@ while True:
         times = 0
         while(not dist):
             if times % 5 == 0 and times != 0:
-                dist = search_spin(15 + (10 * times), offset1=180, speed1=15, second_lap=True, fast_exit=True)
+                dist = search_spin(30 + (10 * times), offset1=180, speed1=15, second_lap=True, fast_exit=True)
                 times += 1
             else:
                 move(-5, 30, True, True)
